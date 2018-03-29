@@ -1,7 +1,7 @@
 (in-package :cl-user)
-(defpackage paip-bali
+(defpackage paip-bali-chap1
   (:use :cl))
-(in-package :paip-bali)
+(in-package :paip-bali-chap1)
 
 ;;; Exercise 1.1
 
