@@ -5,12 +5,12 @@
 
 ;;; Exercise 1.1
 
+(defparameter *name-notes* '(MD Jr))
+
 (defun last-name (name)
   (if (member (first (last name)) *name-notes*)
       (last-name (butlast name))
       (first (last name))))
-
-(defparameter *name-notes* '(MD Jr))
 
 ;;; Exercise 1.2
 
@@ -18,19 +18,25 @@
   "calculate base^n, n is any interger."
   (cond ((= n 0) 1)
         ((= n 1) base)
-        ((< n 0)
-         (if (= base 0) "0 / 0, error!"
+        ((< n 0) ; 0^(-1)
+         (if (= base 0)
+             "0 / 0, error!"
              (/ (power base (+ n 1)) base)))
         (t (* base (power base (- n 1))))))
+
 
 ;;; Exercise 1.3
 
 ;; recursive version
-(defun count-atom-r (target)
+(defun count-atom-r (target &optional (v-nil 1))
   "count the number of atoms in a list. nil is either an atom & a lisp so it's included. the tick ' will be evaluated to QUOTE, so total count +1."
-  (cond ((equal nil target) 1)
-        ((listp target) (cond ((= 1 (length target)) (count-atom (first target)))
-                              (t (+ (count-atom (first target)) (count-atom (rest target))))))
+  (cond ((equal nil target) v-nil)
+        ((listp target)
+         (cond
+           ((= 1 (length target))
+            (count-atom-r (first target)))
+           (t (+ (count-atom-r (first target))
+                 (count-atom-r (rest target))))))
         (t 1)))
 
 
@@ -38,7 +44,7 @@
 (defun count-atom-m (target)
   "count the number of atoms in a list. nil is either an atom & a lisp so it's included. the tick ' will be evaluated to QUOTE, so total count +1."
   (cond ((equal nil target) 1)
-        ((listp target) (apply #'+ (mapcar #'count-atom target)))
+        ((listp target) (apply #'+ (mapcar #'count-atom-m target)))
         (t 1)))
 
 ;;;Exercise 1.4
