@@ -77,3 +77,5 @@ CL-USER> (count-expn '(a b) '(b '(a b '(a b)) a a nil '(nil nil)))
 
 (defun dot-product (v1 v2)
   (apply #'+ (mapcar #'* v1 v2)))
+
+

@@ -36,8 +36,10 @@
 ;; by my notion of x-product
 (defun x-product (fn v1 v2)
   "my notion of x-product"
-  (mapcar #'(lambda (x) (mapcar #'(lambda (y) (funcall fn x y))
-                                v2))
+  (mapcar #'(lambda (x)
+              (mapcar #'(lambda (y)
+                          (funcall fn x y))
+                      v2))
           v1))
 
 (defun combine-all (xlist ylist)
@@ -48,9 +50,11 @@
 
 (defun x-product (fn v1 v2)
   "PAIP's notion of x-product"
-  (mappend #'(lambda (x) (mapcar #'(lambda (y) (funcall fn x y))
-                                v2))
-          v1))
+  (mappend #'(lambda (x)
+               (mapcar #'(lambda (y)
+                           (funcall fn x y))
+                       v2))
+           v1))
 
 
 (defun combine-all (xlist ylist)
