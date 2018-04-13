@@ -90,22 +90,35 @@ cons = list* w/ only 2 arguments.
   (read-line *query-io*))
 
 (defun init-20q ()
-  (apply #'next-question (cons *words-memorized*
-                               (funcall #'(lambda (words)
-                                            (list (length (first (sort words #'(lambda (str1 str2)
-                                                                                 (< (length str1)
-                                                                                    (length str2))))))
-                                                  (length (first (last words)))))
-                                        *words-memorized*))))
+  (apply #'next-question (cons (if (null *words-memorized*)
+                                   nil
+                                   (when (> (length *words-memorized*)
+                                            1)
+                                     (sort *words-memorized* #'(lambda (str1 str2)
+                                                                 (< (length str1)
+                                                                    (length str2))))))
+                               (list (length (first *words-memorized*))
+                                              (length (first (last *words-memorized*)))))))
 
-(defun next-question (possible-words word-length-low word-length-high &optional word-gussed)
+(defun next-question (possible-words &optional (word-length-low 1) word-length-high word-gussed)
   "ask questions to the answerer and return 'I got it, the word in your mind is ____ !!' after answerer replies 'it'."
   (cond ((null possible-words) ;no words left.
          (push (prompt-read "pls enter the word in your mind: ")
                *words-memorized*))
-        ((or (null (and word-length-high word-length-low)) ;one of the length bound not yet specified
-             (/= word-length-high word-length-low)) ;don't know the length yet
-         (ask-for-length))
+        ((/= word-length-high word-length-low) ;don't know the length yet
+         (if (y-or-n-p "is the word shorter than ~a latters?" word-length-high)
+             (next-question (delete-if #'(lambda (w)
+                                           (>= (length w)
+                                               word-length-high))
+                                       possible-words
+                                       :from-end t)
+                            word-length-low
+                            (length (first (last possible-words))))
+             (next-question possible-words
+                              new-length-high
+                              (if (> 1 (- word-length-high new-length-high))
+                                  word-length-high
+                                  new-length-high)))))
         (word-gussed ;guessing spelling.
          (let* ((reply-sum (ask-for-reply))
                 (the-reply (first reply-sum))
@@ -117,7 +130,33 @@ cons = list* w/ only 2 arguments.
                (:yes (next-question (yes-modified-input-args)))
                (:no (next-question (no-modified-input-args)))
                (:end return "quit!"))))))
-         
+
+
+
+        ;; ((null word-length-high) ;whether know the upper bound of the length of the word.
+        ;;  (let ((new-length-high
+        ;;          (* 10 word-length-low)))
+        ;;    (if (y-or-n-p "is the word shorter than ~a latters?" new-length-high)
+        ;;        (next-question possible-words word-length-low new-length-high)
+        ;;        (next-question possible-words new-length-high))))
+        ;; ((/= word-length-high word-length-low) ;don't know the length yet
+        ;;  (let ((new-length-high
+        ;;          (round (/ (+ word-length-high word-length-high)
+        ;;                    2))))
+        ;;    (if (y-or-n-p "is the word shorter than ~a latters?" new-length-high)
+        ;;        (next-question possible-words
+        ;;                       word-length-low
+        ;;                       (if (> 1 (- new-length-high word-length-low))
+        ;;                           word-length-low
+        ;;                           new-length-high))
+        ;;        (next-question possible-words
+        ;;                       new-length-high
+        ;;                       (if (> 1 (- word-length-high new-length-high))
+        ;;                           word-length-high
+        ;;                           new-length-high)))))
+
+
+
 (defun think-status (possible-words &key word-length word-gussed)
   "return a status indicator by the remaining list of memorized words."
   )
