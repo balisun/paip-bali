@@ -1,3 +1,8 @@
+;;; trainning session:
+;;; Exercise 3.6 symbol-value
+
+
+
 ;;; Exercise 3.1
 (let* ((x 6)
        (y (* x x)))
@@ -106,7 +111,7 @@ cons = list* w/ only 2 arguments.
          (push (prompt-read "pls enter the word in your mind: ")
                *words-memorized*))
         ((/= word-length-high word-length-low) ;don't know the length yet
-         (if (y-or-n-p "is the word shorter than ~a latters?" word-length-high)
+         (if (y-or-n-p "is the word length between ~a & ~a latters?" word-length-low word-length-high)
              (next-question (delete-if #'(lambda (w)
                                            (>= (length w)
                                                word-length-high))
@@ -172,8 +177,81 @@ cons = list* w/ only 2 arguments.
       
 
 ;;; Exercise 3.6
+Q:
+(setf a 'global-a)
+(defvar *b* 'global-b)
+
+(defun fn () *b*)
+
+(let ((a 'local-a)
+      (*b* 'local-b))
+  (list a *b* (fn) (symbol-value 'a) (symbol-value '*b*)))
+
 my answer:
 (local-a local-b local-b local-a global-b)
 slime:
 (LOCAL-A LOCAL-B LOCAL-B GLOBAL-A LOCAL-B)
 
+(symbol-value 'a)
+;;the function symbol-value always treats its arguments as special veriables
+;;because 'a is not defined as a dynnamic variable, let create a new lexical binding for a & shadow dynamical binding of *b*?
+;;what indeed happen when (setf a ...) without defvar in advance? a special but not dynamic variable?
+
+;;;Exercise 3.8
+
+(defun find-all (item sequence &rest keyword-args
+                 &key (test #'eql) test-not &allow-other-keys)
+  ;;original version
+  "Find all those elements of sequence that match item,
+  according to the keywords.  Doesn't alter sequence."
+  (if test-not
+      (apply #'remove item sequence 
+             :test-not (complement test-not) keyword-args)
+      (apply #'remove item sequence
+             :test (complement test) keyword-args)))
+
+(defun find-all-1 (item sequence &rest keyword-args
+                 &key (test #'eql) test-not &allow-other-keys)
+  "for KCL. remove duplicated key word & value in keyword-args"
+  (flet ((remove-original-key (the-key args)
+           (let ((n1 (search (list the-key)
+                            args)))
+             (append (subseq args 0 n1)
+                     (subseq args (+ n1 2) (length args))))))
+    (if test-not
+        (apply #'remove item sequence 
+               :test-not (complement test-not)
+               (remove-original-key :test-not keyword-args))
+        (apply #'remove item sequence
+               :test (complement test)
+               (remove-original-key :test keyword-args)))))
+;;;Exercise 3.9
+
+CL-USER> (reduce #'list nil)
+NIL
+CL-USER> (reduce #'list '(1))
+1
+CL-USER> (reduce #'list '(1 2))
+(1 2)
+CL-USER> (reduce #'list '(1 2 3))
+((1 2) 3)
+
+
+(defun lenth-by-reduce (the-list)
+  (if (null the-list)
+      0
+      (reduce #'(lambda (sum)
+                  (1+ sum))
+              (replace the-list
+                       '(1)
+                       :start1 0
+                       :end1 1))))
+;;; Exercise 3.11
+acons
+
+;;Exercise 3.12
+
+(defun refine-cases (words-list)
+  (format nil "~@(~{~a ~}~a.~)"
+          (butlast words-list)
+          (car (last words-list))))
