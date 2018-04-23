@@ -94,18 +94,55 @@ cons = list* w/ only 2 arguments.
   (force-output *query-io*)
   (read-line *query-io*))
 
-(defun init-20q ()
-  (apply #'next-question (cons (if (null *words-memorized*)
-                                   nil
-                                   (when (> (length *words-memorized*)
-                                            1)
-                                     (sort *words-memorized* #'(lambda (str1 str2)
-                                                                 (< (length str1)
-                                                                    (length str2))))))
-                               (list (length (first *words-memorized*))
-                                              (length (first (last *words-memorized*)))))))
+(defun get-last (list)
+  (first (last list)))
 
-(defun next-question (possible-words &optional (word-length-low 1) word-length-high word-gussed)
+(defun get-mid (list))
+               
+(defun init-20q ()
+  (guess-spelling (guess-length (when (> (length *words-memorized*)
+                                         1)  ;sort *words-memorized* if there are morn than 1 words in it.
+                                  (sort *words-memorized* #'(lambda (str1 str2)
+                                                              (< (length str1)
+                                                                 (length str2)))))
+                                (remove-duplicates (mapcar #'length *words-memorized*))))) ;make a list of the length of the memorized words.
+
+(defun give-up ()
+  (push (prompt-read "pls enter the word in your mind: ")
+        *words-memorized*))
+
+(defun refine-guessing-length (words lengths shortest highest)
+  (list (remove-if #'(lambda (str)
+                       (let ((str-length (length str)))
+                         (or (> str-length highest)
+                             (< str-length lowest))))
+                   possible-words)
+        (remove-if #'(lambda (n)
+                       (or (> n highest)
+                           (< n lowest)))
+                   words-lengths)))
+
+(defun guess-length (possible-words words-lengths)
+  (if words-lengths
+      (if (> (length words-lengths)
+             3)
+          (let ((the-shortest (first words-lengths))
+                (the-mid (get-mid words-lengths)))
+            (if (y-or-n-p "is the word length between ~a & ~a latters?" the-shortest the-mid) ;if the length within the lower half?
+                (guess-length (refine-guessing-length possible-words words-lengths the-shortest the-mid))
+                (let ((the-longest (get-last words-lengths))
+                      (the-mid (find-if #'(lambda (n)
+                                            (> n the-mid))
+                                        words-lengths)))
+                  (if (y-or-n-p "is the word length between ~a & ~a latters?" the-shortest the-mid) ;if the length within the higher half?
+                      (guess-length (refine-guessing-length possible-words words-lengths the-mid the-shortest))
+                      (give-up)))))
+          (length=shortest?)
+          nil)))
+
+(defun guess-spelling (possible-words))
+
+(defun next-question (possible-words words-lengths &optional word-gussed)
   "ask questions to the answerer and return 'I got it, the word in your mind is ____ !!' after answerer replies 'it'."
   (cond ((null possible-words) ;no words left.
          (push (prompt-read "pls enter the word in your mind: ")
@@ -225,6 +262,7 @@ slime:
         (apply #'remove item sequence
                :test (complement test)
                (remove-original-key :test keyword-args)))))
+
 ;;;Exercise 3.9
 
 CL-USER> (reduce #'list nil)
@@ -237,10 +275,10 @@ CL-USER> (reduce #'list '(1 2 3))
 ((1 2) 3)
 
 
-(defun lenth-by-reduce (the-list)
+(defun length-by-reduce (the-list)
   (if (null the-list)
       0
-      (reduce #'(lambda (sum)
+      (reduce #'(lambda (sum e2)
                   (1+ sum))
               (replace the-list
                        '(1)
