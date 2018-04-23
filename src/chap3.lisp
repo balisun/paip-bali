@@ -129,16 +129,19 @@ cons = list* w/ only 2 arguments.
           (let ((the-shortest (first words-lengths))
                 (the-mid (get-mid words-lengths)))
             (if (y-or-n-p "is the word length between ~a & ~a latters?" the-shortest the-mid) ;if the length within the lower half?
-                (guess-length (refine-guessing-length possible-words words-lengths the-shortest the-mid))
+                (apply #'guess-length (refine-guessing-length possible-words words-lengths the-shortest the-mid))
                 (let ((the-longest (get-last words-lengths))
                       (the-mid (find-if #'(lambda (n)
                                             (> n the-mid))
                                         words-lengths)))
                   (if (y-or-n-p "is the word length between ~a & ~a latters?" the-shortest the-mid) ;if the length within the higher half?
-                      (guess-length (refine-guessing-length possible-words words-lengths the-mid the-shortest))
+                      (apply #'guess-length (refine-guessing-length possible-words words-lengths the-mid the-longest))
                       (give-up)))))
-          (length=shortest?)
-          nil)))
+          (let ((the-shortest))
+            (if (y-or-n-p "is the length of the word ~a latters?" the-shortest)
+                (apply #'guess-spelling (refine-guessing-length possible-words the-shortest the-shortest)
+                (apply #'guess-length (refine-guessing-length possible-words words-lengths (+ 1 the-shortest) (get-last words-lengths)))))))
+      nil)))
 
 (defun guess-spelling (possible-words))
 
