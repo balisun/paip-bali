@@ -2,6 +2,22 @@
 ;;; Exercise 3.6 symbol-value
 
 
+;;;list*
+(defun list*-bali (&rest args)
+  (cond ((null args)
+         "error")
+        ((= 1 (length args))
+         (first args))
+        (t
+         (apply #'list*-bali
+                (append (butlast (butlast args))
+                        (list (cons (first (last (butlast args)))
+                                    (first (last args)))))))))
+
+(defun list*% (a &rest r)
+ (if r
+     (cons a (apply #'list*% r))
+     a))
 
 ;;; Exercise 3.1
 (let* ((x 6)
@@ -15,10 +31,10 @@
  6) ; =>36
 
 (funcall #'(lambda (x)
-             funcall #'(lambda (y)
+             (funcall #'(lambda (y)
                          (+ x y))
-             (* x x))
-         6) ; => error!!o
+                      (* x x)))
+         6)
 
 
 (let ((x 6))
@@ -136,15 +152,34 @@ cons = list* w/ only 2 arguments.
                                         words-lengths)))
                   (if (y-or-n-p "is the word length between ~a & ~a latters?" the-shortest the-mid) ;if the length within the higher half?
                       (apply #'guess-length (refine-guessing-length possible-words words-lengths the-mid the-longest))
-                      (give-up)))))
+                      nil))))
           (let ((the-shortest))
             (if (y-or-n-p "is the length of the word ~a latters?" the-shortest)
                 (apply #'guess-spelling (refine-guessing-length possible-words the-shortest the-shortest)
                 (apply #'guess-length (refine-guessing-length possible-words words-lengths (+ 1 the-shortest) (get-last words-lengths)))))))
       nil)))
 
-(defun guess-spelling (possible-words))
+;; (defun word-beginning (words &optional (begin-n 1))
+;;   "return the beginning part of the first word that's not identical to all other words."
+;;   (let ((begin-str (subseq (first words)
+;;                            0
+;;                            begin-n)))
+;;     (if (or (mapcar #'(lambda ())
+;;                     (rest words))))))
+                           
 
+(defun guess-spelling (possible-words)
+  (cond ((null possible-words)
+         (give-up))
+        ((= 1 (length possible-words))
+         (if (y-or-n-p "is the word ~a?" (first possible-words))
+             "The computer wins!"
+             (give-up)))
+        (t
+         (if (y-or-n-p "is the word begin with ~(~a)?" (word-beginning possible-words))
+             (guess-spelling refine-words-y)
+             (guess-spelling refine-words-n)))))
+             
 (defun next-question (possible-words words-lengths &optional word-gussed)
   "ask questions to the answerer and return 'I got it, the word in your mind is ____ !!' after answerer replies 'it'."
   (cond ((null possible-words) ;no words left.
