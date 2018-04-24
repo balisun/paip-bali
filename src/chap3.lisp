@@ -110,33 +110,30 @@ cons = list* w/ only 2 arguments.
   (force-output *query-io*)
   (read-line *query-io*))
 
-(defun get-last (list)
-  (first (last list)))
+(defun get-last (the-list)
+  (first (last the-list)))
 
-(defun get-mid (list))
+(defun get-mid (the-list)
+  (nth (floor (/ (length the-list)
+                 2))
+       the-list))
                
-(defun init-20q ()
-  (guess-spelling (guess-length (when (> (length *words-memorized*)
-                                         1)  ;sort *words-memorized* if there are morn than 1 words in it.
-                                  (sort *words-memorized* #'(lambda (str1 str2)
-                                                              (< (length str1)
-                                                                 (length str2)))))
-                                (remove-duplicates (mapcar #'length *words-memorized*))))) ;make a list of the length of the memorized words.
+
 
 (defun give-up ()
   (push (prompt-read "pls enter the word in your mind: ")
         *words-memorized*))
 
-(defun refine-guessing-length (words lengths shortest highest)
+(defun refine-guessing-length (words lengths lowest highest)
   (list (remove-if #'(lambda (str)
                        (let ((str-length (length str)))
                          (or (> str-length highest)
                              (< str-length lowest))))
-                   possible-words)
+                   words)
         (remove-if #'(lambda (n)
                        (or (> n highest)
                            (< n lowest)))
-                   words-lengths)))
+                   lengths)))
 
 (defun guess-length (possible-words words-lengths)
   (if words-lengths
@@ -153,11 +150,31 @@ cons = list* w/ only 2 arguments.
                   (if (y-or-n-p "is the word length between ~a & ~a latters?" the-shortest the-mid) ;if the length within the higher half?
                       (apply #'guess-length (refine-guessing-length possible-words words-lengths the-mid the-longest))
                       nil))))
-          (let ((the-shortest))
+          (let ((the-shortest (first words-lengths)))
             (if (y-or-n-p "is the length of the word ~a latters?" the-shortest)
-                (apply #'guess-spelling (refine-guessing-length possible-words the-shortest the-shortest)
-                (apply #'guess-length (refine-guessing-length possible-words words-lengths (+ 1 the-shortest) (get-last words-lengths)))))))
+                (guess-spelling (first (refine-guessing-length possible-words words-lengths the-shortest the-shortest)))
+                (apply #'guess-length (refine-guessing-length possible-words words-lengths (+ 1 the-shortest) (get-last words-lengths))))))
       nil)))
+
+
+
+(defun guess-spelling (possible-words)
+  (if (null possible-words)
+      (give-up)
+      (if (y-or-n-p "is the word ~a?" (first possible-words))
+          (format t "The computer wins!")
+          (guess-spelling (rest possible-words)))))
+
+
+(defun init-20q ()
+  (guess-spelling (guess-length (when (> (length *words-memorized*)
+                                         1)  ;sort *words-memorized* if there are morn than 1 words in it.
+                                  (sort *words-memorized* #'(lambda (str1 str2)
+                                                              (< (length str1)
+                                                                 (length str2)))))
+                                (remove-duplicates (mapcar #'length *words-memorized*))))) ;make a list of the length of the memorized words.
+
+
 
 ;; (defun word-beginning (words &optional (begin-n 1))
 ;;   "return the beginning part of the first word that's not identical to all other words."
@@ -166,50 +183,37 @@ cons = list* w/ only 2 arguments.
 ;;                            begin-n)))
 ;;     (if (or (mapcar #'(lambda ())
 ;;                     (rest words))))))
-                           
 
-(defun guess-spelling (possible-words)
-  (cond ((null possible-words)
-         (give-up))
-        ((= 1 (length possible-words))
-         (if (y-or-n-p "is the word ~a?" (first possible-words))
-             "The computer wins!"
-             (give-up)))
-        (t
-         (if (y-or-n-p "is the word begin with ~(~a)?" (word-beginning possible-words))
-             (guess-spelling refine-words-y)
-             (guess-spelling refine-words-n)))))
-             
-(defun next-question (possible-words words-lengths &optional word-gussed)
-  "ask questions to the answerer and return 'I got it, the word in your mind is ____ !!' after answerer replies 'it'."
-  (cond ((null possible-words) ;no words left.
-         (push (prompt-read "pls enter the word in your mind: ")
-               *words-memorized*))
-        ((/= word-length-high word-length-low) ;don't know the length yet
-         (if (y-or-n-p "is the word length between ~a & ~a latters?" word-length-low word-length-high)
-             (next-question (delete-if #'(lambda (w)
-                                           (>= (length w)
-                                               word-length-high))
-                                       possible-words
-                                       :from-end t)
-                            word-length-low
-                            (length (first (last possible-words))))
-             (next-question possible-words
-                              new-length-high
-                              (if (> 1 (- word-length-high new-length-high))
-                                  word-length-high
-                                  new-length-high)))))
-        (word-gussed ;guessing spelling.
-         (let* ((reply-sum (ask-for-reply))
-                (the-reply (first reply-sum))
-                (the-answer (second reply-sum)))
-           (cond (eql :it the-reply)
-               (:it (format t
-                            "I got it,I got it, the word in your mind is ~a !!"
-                            (second reply-sum)))
-               (:yes (next-question (yes-modified-input-args)))
-               (:no (next-question (no-modified-input-args)))
-               (:end return "quit!"))))))
+;; (defun next-question (possible-words words-lengths &optional word-gussed)
+;;   "ask questions to the answerer and return 'I got it, the word in your mind is ____ !!' after answerer replies 'it'."
+;;   (cond ((null possible-words) ;no words left.
+;;          (push (prompt-read "pls enter the word in your mind: ")
+;;                *words-memorized*))
+;;         ((/= word-length-high word-length-low) ;don't know the length yet
+;;          (if (y-or-n-p "is the word length between ~a & ~a latters?" word-length-low word-length-high)
+;;              (next-question (delete-if #'(lambda (w)
+;;                                            (>= (length w)
+;;                                                word-length-high))
+;;                                        possible-words
+;;                                        :from-end t)
+;;                             word-length-low
+;;                             (length (first (last possible-words))))
+;;              (next-question possible-words
+;;                               new-length-high
+;;                               (if (> 1 (- word-length-high new-length-high))
+;;                                   word-length-high
+;;                                   new-length-high)))))
+;;         (word-gussed ;guessing spelling.
+;;          (let* ((reply-sum (ask-for-reply))
+;;                 (the-reply (first reply-sum))
+;;                 (the-answer (second reply-sum)))
+;;            (cond (eql :it the-reply)
+;;                (:it (format t
+;;                             "I got it,I got it, the word in your mind is ~a !!"
+;;                             (second reply-sum)))
+;;                (:yes (next-question (yes-modified-input-args)))
+;;                (:no (next-question (no-modified-input-args)))
+;;                (:end return "quit!"))))))
 
 
 
@@ -237,18 +241,18 @@ cons = list* w/ only 2 arguments.
 
 
 
-(defun think-status (possible-words &key word-length word-gussed)
-  "return a status indicator by the remaining list of memorized words."
-  )
+;; (defun think-status (possible-words &key word-length word-gussed)
+;;   "return a status indicator by the remaining list of memorized words."
+;;   )
 
-(defun ask-for-reply (guess-status)
-  "when not giv-ing-up, generate the question by the possible words, prompt form answerer to return reply 'yes' 'no' 'it' & the answer."
-  (format t "" (case guess-status
-                 (length-range-case length-range-question)
-                 (a-length-case a-length-question)
-                 (nth-latter-case nth-latter-question)))
-  (prompt-from-answerer)
-  (list the-reply the-answer))      
+;; (defun ask-for-reply (guess-status)
+;;   "when not giv-ing-up, generate the question by the possible words, prompt form answerer to return reply 'yes' 'no' 'it' & the answer."
+;;   (format t "" (case guess-status
+;;                  (length-range-case length-range-question)
+;;                  (a-length-case a-length-question)
+;;                  (nth-latter-case nth-latter-question)))
+;;   (prompt-from-answerer)
+;;   (list the-reply the-answer))      
       
 
 ;;; Exercise 3.6
