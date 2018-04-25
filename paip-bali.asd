@@ -21,7 +21,8 @@
   :depends-on ()
   :components ((:module "src"
                 :components
-                ((:file "paip-bali"))))
+                ((:file "paip-bali" :depends-on ("chap3-20q"))
+                 (:file "chap3-20q"))))
   :description "PAIP exercices"
   :long-description
   #.(with-open-file (stream (merge-pathnames
