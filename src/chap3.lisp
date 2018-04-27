@@ -69,12 +69,14 @@ cons = list* w/ only 2 arguments.
              (if (consp ob)
                  (concatenate 'string
                               "("
-                              (write-to-string (car ob))
+                              (write-to-string (car ob)) ; need (print-dot-pair0 (car ob) ....
                               " . "
                               (dp-str (cdr ob))
                               ")")
                  (write-to-string ob))))
     (princ (dp-str obj))))
+
+(print-dot-pair0 '(((a b c d))))(((A B C D)) . NIL)"(((A B C D)) . NIL)"
 
 (defun print-dot-pair1 (obj)
   "revised to be tail-recursive."
@@ -95,11 +97,31 @@ cons = list* w/ only 2 arguments.
                               suffix))))           
     (princ (dp-str obj))))
 
+;;;Answer 3.3
+(defun dprint (x) 
+"Print an expression in dotted pair notation. use cond for implicit progn."
+  (cond ((atom x)
+         (princ x)) 
+        (t (princ "(")
+           (dprint (first x)) 
+           (pr-rest (rest x)) 
+           (princ ")") 
+           X))) 
+
+(defun pr-rest (x) 
+  (princ " . ") 
+  (dprint x)) 
+
 ;;; Exercise 3.4
 (defun print-opt (obj &optional (dot-pair-p nil))
   (if dot-pair-p
       (print-dot-pair1 obj)
       (print obj)))
+;;;Answer 3.4
+(defun pr-rest (x) 
+  (cond ((null x)) 
+        ((atom x) (princ " . ") (princ x)) 
+        (t (princ " ") (dprint (first x)) (pr-rest (rest x))))) 
 
 ;;; Exercise 3.5
 

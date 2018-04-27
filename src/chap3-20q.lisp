@@ -36,11 +36,11 @@
        the-list))
 
 (defun give-up ()
-  (sort (push (prompt-read "pls enter the word in your mind")
-              *words-memorized*)
-        #'(lambda (str1 str2)
-            (< (length str1)
-               (length str2)))))
+  (setf *words-memorized* (sort (push (prompt-read "pls enter the word in your mind")
+                                      *words-memorized*)
+                                #'(lambda (str1 str2)
+                                    (< (length str1)
+                                       (length str2))))) ;setf forgotten!!
 
 (defun refine-guessing-length (words lengths lowest highest)
   (list (remove-if #'(lambda (str)
@@ -56,7 +56,7 @@
 (defun guess-length (possible-words words-lengths)
   (if words-lengths
       (if (> (length words-lengths)
-             3)
+             3) ;use cdddr?
           (let ((the-shortest (first words-lengths))
                 (the-mid (get-mid words-lengths)))
             (if (y-or-n-p "is the word length between ~a & ~a latters?" the-shortest the-mid) ;if the length within the lower half?
@@ -75,6 +75,17 @@
                 (apply #'guess-length (refine-guessing-length possible-words words-lengths (+ 1 the-shortest) (get-last words-lengths))))))
       nil))
 
+'( 3 5 7 10 12 13 15)
+2 "or"
+11 ""
+18
+
+ans 11
+3~15 y
+<=10 n
+<=15 y
+>=12 n => giveup
+
 (defun guess-spelling (the-words)
   #+nil(print (list :the-words the-words))
   (if (null the-words)
@@ -86,7 +97,14 @@
 (defun init-20q ()
   (guess-spelling (guess-length (when (> (length *words-memorized*)
                                          1)  ;sort *words-memorized* if there are morn than 1 words in it.
-                                  (sort *words-memorized* #'(lambda (str1 str2)
+                                  (sort *words-memorized* #'(lambda (str1 str2) ;should use let!!
+                                                              (< (length str1)
+                                                                 (length str2)))))
+                                (remove-duplicates (mapcar #'length *words-memorized*))))) ;make a list of the length of the memorized words.
+
+(defun init-20q ()
+  (guess-spelling (guess-length (when (cdr *words-memorized*)
+                                  (sort *words-memorized* #'(lambda (str1 str2) ;should use let!!
                                                               (< (length str1)
                                                                  (length str2)))))
                                 (remove-duplicates (mapcar #'length *words-memorized*))))) ;make a list of the length of the memorized words.
