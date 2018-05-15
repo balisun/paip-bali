@@ -182,8 +182,8 @@ cons = list* w/ only 2 arguments.
 
 ;;; Exercise 3.6
 Q:
-(setf a 'global-a)
-(defvar *b* 'global-b)
+; (setf a 'global-a) => lexical
+(defvar *b* 'global-b) ;=> dynamical
 
 (defun fn () *b*)
 
@@ -200,6 +200,26 @@ slime:
 ;;the function symbol-value always treats its arguments as special veriables
 ;;because 'a is not defined as a dynnamic variable, let create a new lexical binding for a & shadow dynamical binding of *b*?
 ;;what indeed happen when (setf a ...) without defvar in advance? a special but not dynamic variable?
+
+CL-USER> (defvar *b* 'global-b) ;=> dynamical
+
+(defun fn () *b*)
+
+(let ((a 'local-a)
+      (*b* 'local-b))
+  (list a *b* (fn) (symbol-value 'a) (symbol-value '*b*)))
+; Evaluation aborted on #<UNBOUND-VARIABLE A {100343D753}>.
+CL-USER> (symbol-value 'a)
+; Evaluation aborted on #<UNBOUND-VARIABLE A {10036EE803}>.
+CL-USER> (setf (symbol-value 'a) 'bla) => can be used in let
+BLA
+CL-USER> (symbol-value 'a)
+BLA
+
+=> can be used in let
+
+(set 'a 'sss)
+(setf (symbol-value 'a) 'bla)
 
 ;;;Exercise 3.8
 
@@ -247,10 +267,16 @@ CL-USER> (reduce #'list '(1 2 3))
       0
       (reduce #'(lambda (sum e2)
                   (1+ sum))
-              (replace the-list
-                       '(1)
-                       :start1 0
-                       :end1 1))))
+              (print (replace the-list
+                              '(1)
+                              :start1 0
+                              :end1 1)))))
+
+(defun length-by-reduce1 (the-list)
+  (reduce #'(lambda (sum e2)
+              (1+ sum))
+          (print (cons 0 the-list))))
+
 ;;; Exercise 3.11
 acons
 
