@@ -283,6 +283,10 @@ acons
 ;;Exercise 3.12
 
 (defun refine-cases (words-list)
-  (format nil "~@(~{~a ~}~a.~)"
+  (format t "~@(~{~a ~}~a.~)"
           (butlast words-list)
           (car (last words-list))))
+
+(defun refine-cases-1 (words-list)
+  (format t "~@(~{~a~^ ~}.~)"
+          words-list))
